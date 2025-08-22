@@ -1,11 +1,12 @@
-# Step 1: Use a lightweight JDK image
-FROM eclipse-temurin:17-jdk-alpine
-
-# Step 2: Set working directory
+# Stage 1: Build the app with Maven
+FROM maven:3.9.6-eclipse-temurin-17 AS build
 WORKDIR /app
+COPY pom.xml .
+COPY src ./src
+RUN mvn clean package -DskipTests
 
-# Step 3: Copy built jar (from Maven build)
-COPY target/employeemanagement-0.0.1-SNAPSHOT.jar app.jar
-
-# Step 4: Run the app
+# Stage 2: Run the app
+FROM eclipse-temurin:17-jdk-alpine
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
 ENTRYPOINT ["java", "-jar", "app.jar"]
